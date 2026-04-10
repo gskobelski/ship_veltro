@@ -60,6 +60,7 @@ export interface InvoiceRecord {
   product_name: string | null;
   quantity: number | null;
   unit: string | null;
+  wz_numbers: string[];
   raw_data: Record<string, unknown>;
 }
 
@@ -97,6 +98,9 @@ export interface ShipmentRecord {
   status: string | null;
   reference1: string | null;
   reference2: string | null;
+  wz_number: string | null;
+  carrier_name: string | null;
+  carrier_invoice_number: string | null;
   raw_data: Record<string, unknown>;
 }
 
@@ -107,4 +111,62 @@ export interface ParseResult<T> {
   errors: string[];
   warnings: string[];
   rowCount: number;
+}
+
+// ---- WZ Matching ----
+
+export interface WzMatch {
+  id: string;
+  org_id: string;
+  wz_number: string;
+  invoice_id: string | null;
+  shipment_id: string | null;
+  invoice_number: string | null;
+  invoice_date: string | null;
+  customer_code: string | null;
+  customer_name: string | null;
+  net_value: number;
+  shipping_cost: number;
+  parcels_count: number;
+  carrier_name: string | null;
+  carrier_invoice_number: string | null;
+  created_at: string;
+}
+
+export interface ColumnMapping {
+  id: string;
+  org_id: string;
+  file_type: "impuls" | "gls" | "customers";
+  mapping: Record<string, string>; // { internalField: "fileColumnHeader" }
+  updated_at: string;
+}
+
+// ---- Report row types (computed from wz_matches) ----
+
+export interface ReportByInvoice {
+  invoice_number: string;
+  customer_code: string | null;
+  customer_name: string | null;
+  invoice_date: string | null;
+  wartosc_fv: number;
+  koszt_transportu: number;
+  liczba_paczek: number;
+  nr_wz: string; // comma-separated
+}
+
+export interface ReportByClient {
+  customer_code: string | null;
+  customer_name: string | null;
+  wartosc_faktur: number;
+  koszt_transportu: number;
+  liczba_paczek: number;
+}
+
+export interface ReportByShipment {
+  shipment_number: string | null;
+  nr_faktur: string; // comma-separated
+  customer_name: string | null;
+  wartosc_fv: number;
+  koszt_paczki: number;
+  carrier_invoice_number: string | null;
 }
