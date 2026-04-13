@@ -19,7 +19,7 @@
  */
 
 import * as XLSX from "xlsx";
-import { normalizeWz } from "../wz-normalizer";
+import { extractWzNumbers } from "../wz-normalizer";
 import type { ParseResult, ShipmentRecord } from "../../types";
 
 // Column name aliases — GLS exports vary in language and version
@@ -62,7 +62,7 @@ const COL_ALIASES: Record<keyof GlsRow, string[]> = {
     "koszt", "cena", "koszt przesyłki", "shipping cost", "opłata",
     "oplata", "netto", "kwota netto", "price",
   ],
-  wzNumber: [
+  wzNumbers: [
     "nr wz", "numer wz", "wz", "[nr wz]",
   ],
   serviceType: [
@@ -99,7 +99,7 @@ interface GlsRow {
   codAmount: number | null;
   declaredValue: number | null;
   shippingCost: number | null;
-  wzNumber: string | null;
+  wzNumbers: string | null;
   serviceType: string | null;
   reference1: string | null;
   reference2: string | null;
@@ -348,7 +348,7 @@ export function parseGlsFile(
       cod_amount: parseNumber(get("codAmount")),
       declared_value: parseNumber(get("declaredValue")),
       shipping_cost: parseNumber(get("shippingCost")),
-      wz_number: normalizeWz(parseString(get("wzNumber"))),
+      wz_numbers: extractWzNumbers(parseString(get("wzNumbers"))),
       service_type: parseString(get("serviceType")),
       carrier_name: parseString(get("carrierName")),
       carrier_invoice_number: parseString(get("carrierInvoiceNumber")),

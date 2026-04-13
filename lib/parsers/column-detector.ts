@@ -21,7 +21,7 @@ const FIELD_ALIASES: Record<FileType, Record<string, string[]>> = {
     wz_numbers: ["nr wz", "[nr wz]", "numer wz", "wz"],
   },
   gls: {
-    wz_number: ["nr wz", "numer wz", "wz", "[nr wz]"],
+    wz_numbers: ["nr wz", "numer wz", "wz", "[nr wz]"],
     shipping_cost: ["koszt netto", "koszt przesylki", "cena netto", "kwota netto", "netto"],
     shipment_number: ["nr przesylki", "numer przesylki", "przesylka", "shipment"],
     customer_code: ["nr klienta", "kod klienta", "id klienta", "klient"],
@@ -39,7 +39,7 @@ const FIELD_ALIASES: Record<FileType, Record<string, string[]>> = {
 // Which fields are required (import will warn if missing)
 export const REQUIRED_FIELDS: Record<FileType, string[]> = {
   impuls: ["invoice_number", "invoice_date", "customer_code", "net_value"],
-  gls: ["wz_number", "shipping_cost", "shipment_number", "shipment_date"],
+  gls: ["wz_numbers", "shipping_cost", "shipment_number", "shipment_date"],
   customers: ["customer_code", "customer_name"],
 };
 

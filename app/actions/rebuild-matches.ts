@@ -13,7 +13,7 @@ interface InvoiceRow {
 interface ShipmentRow {
   id: string;
   shipment_number: string;
-  wz_number: string | null;
+  wz_numbers: string[];
   shipping_cost: number | null;
   parcels_count: number;
   carrier_name: string | null;
@@ -54,27 +54,13 @@ function distributeInteger(total: number, parts: number): number[] {
 }
 
 function buildShipmentCostByWz(shipments: ShipmentRow[]): Map<string, number> {
-  const grouped = new Map<string, ShipmentRow[]>();
-
-  for (const shipment of shipments) {
-    if (!shipment.wz_number) continue;
-    const key = shipment.shipment_number || shipment.id;
-    const current = grouped.get(key) ?? [];
-    current.push(shipment);
-    grouped.set(key, current);
-  }
-
   const costByWz = new Map<string, number>();
 
-  for (const group of Array.from(grouped.values())) {
-    const wzCount = group.length;
-    const totalCost = group[0]?.shipping_cost ?? 0;
-    const costPerWz = wzCount > 0 ? roundCurrency(totalCost / wzCount) : 0;
-
-    for (const shipment of group) {
-      if (shipment.wz_number) {
-        costByWz.set(shipment.wz_number, costPerWz);
-      }
+  for (const shipment of shipments) {
+    if (!shipment.wz_numbers.length) continue;
+    const costPerWz = roundCurrency((shipment.shipping_cost ?? 0) / shipment.wz_numbers.length);
+    for (const wz of shipment.wz_numbers) {
+      costByWz.set(wz, costPerWz);
     }
   }
 
@@ -82,25 +68,13 @@ function buildShipmentCostByWz(shipments: ShipmentRow[]): Map<string, number> {
 }
 
 function buildShipmentParcelsByWz(shipments: ShipmentRow[]): Map<string, number> {
-  const grouped = new Map<string, ShipmentRow[]>();
-
-  for (const shipment of shipments) {
-    if (!shipment.wz_number) continue;
-    const key = shipment.shipment_number || shipment.id;
-    const current = grouped.get(key) ?? [];
-    current.push(shipment);
-    grouped.set(key, current);
-  }
-
   const parcelsByWz = new Map<string, number>();
 
-  for (const group of Array.from(grouped.values())) {
-    const distribution = distributeInteger(group[0]?.parcels_count ?? 0, group.length);
-
-    group.forEach((shipment, index) => {
-      if (shipment.wz_number) {
-        parcelsByWz.set(shipment.wz_number, distribution[index] ?? 0);
-      }
+  for (const shipment of shipments) {
+    if (!shipment.wz_numbers.length) continue;
+    const distribution = distributeInteger(shipment.parcels_count, shipment.wz_numbers.length);
+    shipment.wz_numbers.forEach((wz, index) => {
+      parcelsByWz.set(wz, distribution[index] ?? 0);
     });
   }
 
@@ -144,10 +118,11 @@ export function buildWzMatchRows(
   }
 
   for (const shipment of shipments) {
-    if (!shipment.wz_number) continue;
-    allWz.add(shipment.wz_number);
-    if (!shipmentsByWz.has(shipment.wz_number)) {
-      shipmentsByWz.set(shipment.wz_number, shipment);
+    for (const wz of shipment.wz_numbers) {
+      allWz.add(wz);
+      if (!shipmentsByWz.has(wz)) {
+        shipmentsByWz.set(wz, shipment);
+      }
     }
   }
 
@@ -195,7 +170,7 @@ export async function rebuildWzMatchesAction(orgId: string): Promise<void> {
 
   const { data: shipments, error: shipmentError } = await serviceClient
     .from("shipments")
-    .select("id, shipment_number, wz_number, shipping_cost, parcels_count, carrier_name, carrier_invoice_number")
+    .select("id, shipment_number, wz_numbers, shipping_cost, parcels_count, carrier_name, carrier_invoice_number")
     .eq("org_id", orgId);
 
   if (shipmentError) {

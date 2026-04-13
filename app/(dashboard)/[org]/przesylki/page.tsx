@@ -4,7 +4,7 @@ import { createServerClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
 
 const FIELD_LABELS = {
-  wz_number: "Nr WZ",
+  wz_numbers: "Nr WZ",
   shipping_cost: "Koszt netto",
   shipment_number: "Nr przesyłki",
   shipment_date: "Data wysyłki",

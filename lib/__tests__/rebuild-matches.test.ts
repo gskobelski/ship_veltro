@@ -21,7 +21,7 @@ describe("buildWzMatchRows", () => {
       {
         id: "ship-1",
         shipment_number: "SHP-1",
-        wz_number: "WZ000100",
+        wz_numbers: ["WZ000100"],
         shipping_cost: 25,
         parcels_count: 1,
         carrier_name: "GLS",
@@ -72,7 +72,7 @@ describe("buildWzMatchRows", () => {
       {
         id: "ship-1",
         shipment_number: "SHP-1",
-        wz_number: "WZ000300",
+        wz_numbers: ["WZ000300"],
         shipping_cost: 10,
         parcels_count: 1,
         carrier_name: "GLS",
@@ -107,21 +107,12 @@ describe("buildWzMatchRows", () => {
     expect(rows.map((row) => row.net_value)).toEqual([1000, 1000]);
   });
 
-  it("splits shipment cost equally across WZ values sharing one shipment number", () => {
+  it("splits shipment cost equally across multiple WZ in one shipment row", () => {
     const rows = buildWzMatchRows(ORG_ID, [], [
       {
         id: "ship-1",
         shipment_number: "SHP-2",
-        wz_number: "WZ000500",
-        shipping_cost: 20,
-        parcels_count: 2,
-        carrier_name: "GLS",
-        carrier_invoice_number: "FGLS002",
-      },
-      {
-        id: "ship-2",
-        shipment_number: "SHP-2",
-        wz_number: "WZ000501",
+        wz_numbers: ["WZ000500", "WZ000501"],
         shipping_cost: 20,
         parcels_count: 2,
         carrier_name: "GLS",

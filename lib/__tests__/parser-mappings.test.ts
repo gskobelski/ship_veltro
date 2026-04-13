@@ -60,14 +60,14 @@ describe("parser column mappings", () => {
     ]);
 
     const result = parseGlsFile(buffer, "upload-1", "org-1", {
-      wzNumber: "Mapped WZ",
+      wzNumbers: "Mapped WZ",
       carrierName: "Carrier Source",
       carrierInvoiceNumber: "Carrier Invoice Source",
     });
 
     expect(result.errors).toEqual([]);
     expect(result.records).toHaveLength(1);
-    expect(result.records[0].wz_number).toBe("WZ000100");
+    expect(result.records[0].wz_numbers).toEqual(["WZ000100"]);
     expect(result.records[0].carrier_name).toBe("Kurier X");
     expect(result.records[0].carrier_invoice_number).toBe("FV/KUR/2026/77");
   });
