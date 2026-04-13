@@ -27,6 +27,12 @@ Nowe zakładki w menu bocznym (zastępują obecny dashboard):
 /[org]/zestawienia     → Zestawienia
 ```
 
+Dotychczasowa strona zbiorczego uploadu `/${org}/upload` przestaje być głównym flow operacyjnym.
+Może zostać technicznie w repo jako legacy entrypoint w okresie przejściowym, ale:
+- znika z głównej nawigacji,
+- nie dostaje nowych funkcji,
+- docelowy import odbywa się wyłącznie przez osobne sekcje biznesowe.
+
 Każda strona z importem zawiera:
 - Przycisk **Importuj** (upload pliku Excel/CSV)
 - Przycisk **Pobierz szablon** (pusty Excel z wymaganymi kolumnami)
