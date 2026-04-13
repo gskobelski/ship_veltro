@@ -31,7 +31,7 @@ export interface MonthlyUpload {
 export interface CustomerRecord {
   id: string;
   org_id: string;
-  upload_id: string;
+  upload_id: string | null;
   customer_code: string;
   customer_name: string;
   nip: string | null;

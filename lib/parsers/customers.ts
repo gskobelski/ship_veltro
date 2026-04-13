@@ -107,7 +107,7 @@ function parseString(val: unknown): string | null {
 
 export function parseCustomersFile(
   fileBuffer: Buffer,
-  uploadId: string,
+  uploadId: string | null,
   orgId: string,
   mapping: Record<string, string> = {}
 ): ParseResult<Omit<CustomerRecord, "id">> {
