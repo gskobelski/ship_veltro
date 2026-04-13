@@ -1,6 +1,12 @@
 # Design: WZ Matching Engine & Zestawienia
 **Date:** 2026-04-10
-**Status:** Approved
+**Status:** Implemented
+
+**Implementation note (2026-04-13):**
+Zakres opisany w tym dokumencie został wdrożony jako docelowy flow operacyjny dla osobnych sekcji
+`Sprzedaż`, `Przesyłki`, `Klienci` i `Zestawienia`. Ten dokument pozostaje trwałą specyfikacją
+wdrożonego rozwiązania. Roboczy opis z `planned-features` został po merge wycofany z obiegu i nie jest
+dokumentacją docelową.
 
 ---
 
@@ -286,7 +292,7 @@ Generowane przez bibliotekę `xlsx` (już jest w projekcie).
 
 ---
 
-## 9. Nowe pliki do stworzenia
+## 9. Moduły objęte implementacją
 
 ```
 app/(dashboard)/[org]/sprzedaz/page.tsx
@@ -308,6 +314,9 @@ components/customers/customers-table.tsx
 components/zestawienia/report-table.tsx
 supabase/migrations/002_wz_matching.sql
 ```
+
+Lista ma charakter projektowy i pokazuje docelowe obszary implementacji. Finalny podział plików mógł
+zostać dopasowany do istniejącej struktury repo podczas wdrożenia.
 
 ---
 
