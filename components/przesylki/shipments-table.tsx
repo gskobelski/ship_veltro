@@ -16,7 +16,7 @@ export function ShipmentsTable({ orgId, shipments }: Props) {
   const rows = shipments.map((s) => ({
     id: s.id,
     cells: [
-      s.wz_number ?? "—",
+      s.wz_numbers.join(", ") || "—",
       s.shipment_number,
       s.shipment_date,
       s.customer_code ?? "—",
