@@ -73,9 +73,13 @@ const COL_ALIASES: Record<keyof GlsRow, string[]> = {
     "referencja 1", "ref 1", "ref1", "reference 1", "reference1",
     "numer zamówienia", "order number", "nr zam",
   ],
+  customerCode: [
+    "kod klienta", "nr klienta", "id klienta", "id platnika", "kod platnika",
+    "customer code", "customer id",
+  ],
   reference2: [
     "referencja 2", "ref 2", "ref2", "reference 2", "reference2",
-    "numer klienta", "customer number", "nr klienta",
+    "numer klienta", "customer number",
   ],
   carrierName: [
     "nazwa kuriera", "kurier", "carrier",
@@ -103,6 +107,7 @@ interface GlsRow {
   serviceType: string | null;
   reference1: string | null;
   reference2: string | null;
+  customerCode: string | null;
   carrierName: string | null;
   carrierInvoiceNumber: string | null;
   status: string | null;
@@ -327,7 +332,7 @@ export function parseGlsFile(
 
     const ref1 = parseString(get("reference1"));
     const ref2 = parseString(get("reference2"));
-    const customerCode = extractCustomerCode(ref1, ref2);
+    const customerCode = parseString(get("customerCode")) ?? extractCustomerCode(ref1, ref2);
 
     const rawData: Record<string, unknown> = {};
     headerRow.forEach((h, i) => {
