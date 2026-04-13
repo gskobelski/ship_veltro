@@ -17,7 +17,8 @@
  */
 
 import * as XLSX from "xlsx";
-import type { ParseResult, InvoiceRecord } from "@/types";
+import { extractWzNumbers } from "../wz-normalizer";
+import type { ParseResult, InvoiceRecord } from "../../types";
 
 const COL_ALIASES: Record<keyof ImpulsRow, string[]> = {
   invoiceNumber: [
@@ -55,6 +56,9 @@ const COL_ALIASES: Record<keyof ImpulsRow, string[]> = {
     "wartość netto", "wartosc netto", "netto", "net value", "net amount",
     "kwota netto",
   ],
+  wzNumbers: [
+    "nr wz", "[nr wz]", "numer wz", "wz",
+  ],
   grossValue: [
     "wartość brutto", "wartosc brutto", "brutto", "gross value", "gross amount",
     "kwota brutto",
@@ -75,6 +79,7 @@ interface ImpulsRow {
   quantity: number | null;
   unit: string | null;
   netValue: number | null;
+  wzNumbers: string | null;
   grossValue: number | null;
   vatValue: number | null;
 }
@@ -101,6 +106,11 @@ function buildColumnMap(headers: string[]): Map<string, keyof ImpulsRow> {
     }
   }
   return map;
+}
+
+function findHeaderIndex(headers: string[], targetHeader: string): number {
+  const normalizedTarget = normalizeHeader(targetHeader);
+  return headers.findIndex((header) => normalizeHeader(header) === normalizedTarget);
 }
 
 function parseNumber(val: unknown): number | null {
@@ -137,7 +147,8 @@ function parseString(val: unknown): string | null {
 export function parseImpulsFile(
   fileBuffer: Buffer,
   uploadId: string,
-  orgId: string
+  orgId: string,
+  mapping: Record<string, string> = {}
 ): ParseResult<Omit<InvoiceRecord, "id">> {
   const errors: string[] = [];
   const warnings: string[] = [];
@@ -169,11 +180,24 @@ export function parseImpulsFile(
   }
 
   const headerRow = raw[headerRowIndex] as string[];
-  const columnMap = buildColumnMap(headerRow);
   const fieldIndex = new Map<keyof ImpulsRow, number>();
+  const usedIndexes = new Set<number>();
+
+  for (const [field, headerName] of Object.entries(mapping) as [keyof ImpulsRow, string][]) {
+    const idx = findHeaderIndex(headerRow, headerName);
+    if (idx >= 0 && !fieldIndex.has(field) && !usedIndexes.has(idx)) {
+      fieldIndex.set(field, idx);
+      usedIndexes.add(idx);
+    }
+  }
+
+  const columnMap = buildColumnMap(headerRow);
   headerRow.forEach((h, idx) => {
     const field = columnMap.get(h);
-    if (field && !fieldIndex.has(field)) fieldIndex.set(field, idx);
+    if (field && !fieldIndex.has(field) && !usedIndexes.has(idx)) {
+      fieldIndex.set(field, idx);
+      usedIndexes.add(idx);
+    }
   });
 
   if (fieldIndex.size === 0) {
@@ -209,6 +233,7 @@ export function parseImpulsFile(
       customer_code: parseString(get("customerCode")) ?? "",
       customer_name: parseString(get("customerName")),
       net_value: netValue,
+      wz_numbers: extractWzNumbers(parseString(get("wzNumbers"))),
       gross_value: grossValue,
       vat_value: vatValue,
       product_code: parseString(get("productCode")),

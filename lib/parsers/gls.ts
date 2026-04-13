@@ -19,7 +19,8 @@
  */
 
 import * as XLSX from "xlsx";
-import type { ParseResult, ShipmentRecord } from "@/types";
+import { normalizeWz } from "../wz-normalizer";
+import type { ParseResult, ShipmentRecord } from "../../types";
 
 // Column name aliases — GLS exports vary in language and version
 const COL_ALIASES: Record<keyof GlsRow, string[]> = {
@@ -61,6 +62,9 @@ const COL_ALIASES: Record<keyof GlsRow, string[]> = {
     "koszt", "cena", "koszt przesyłki", "shipping cost", "opłata",
     "oplata", "netto", "kwota netto", "price",
   ],
+  wzNumber: [
+    "nr wz", "numer wz", "wz", "[nr wz]",
+  ],
   serviceType: [
     "typ usługi", "typ uslugi", "usługa", "service", "service type",
     "produkt", "product",
@@ -72,6 +76,12 @@ const COL_ALIASES: Record<keyof GlsRow, string[]> = {
   reference2: [
     "referencja 2", "ref 2", "ref2", "reference 2", "reference2",
     "numer klienta", "customer number", "nr klienta",
+  ],
+  carrierName: [
+    "nazwa kuriera", "kurier", "carrier",
+  ],
+  carrierInvoiceNumber: [
+    "numer faktury kuriera", "faktura kuriera", "nr faktury kuriera",
   ],
   status: [
     "status", "stan", "state",
@@ -89,9 +99,12 @@ interface GlsRow {
   codAmount: number | null;
   declaredValue: number | null;
   shippingCost: number | null;
+  wzNumber: string | null;
   serviceType: string | null;
   reference1: string | null;
   reference2: string | null;
+  carrierName: string | null;
+  carrierInvoiceNumber: string | null;
   status: string | null;
 }
 
@@ -113,6 +126,11 @@ function buildColumnMap(headers: string[]): Map<string, keyof GlsRow> {
   }
 
   return map;
+}
+
+function findHeaderIndex(headers: string[], targetHeader: string): number {
+  const normalizedTarget = normalizeHeader(targetHeader);
+  return headers.findIndex((header) => normalizeHeader(header) === normalizedTarget);
 }
 
 function normalizeHeader(h: string): string {
@@ -201,7 +219,8 @@ function extractCustomerCode(ref1: string | null, ref2: string | null): string |
 export function parseGlsFile(
   fileBuffer: Buffer,
   uploadId: string,
-  orgId: string
+  orgId: string,
+  mapping: Record<string, string> = {}
 ): ParseResult<Omit<ShipmentRecord, "id">> {
   const errors: string[] = [];
   const warnings: string[] = [];
@@ -256,22 +275,31 @@ export function parseGlsFile(
 
   const headerRow = raw[headerRowIndex] as string[];
   const columnMap = buildColumnMap(headerRow);
+  const fieldIndex = new Map<keyof GlsRow, number>();
+  const usedIndexes = new Set<number>();
 
-  if (columnMap.size === 0) {
+  for (const [field, headerName] of Object.entries(mapping) as [keyof GlsRow, string][]) {
+    const idx = findHeaderIndex(headerRow, headerName);
+    if (idx >= 0 && !fieldIndex.has(field) && !usedIndexes.has(idx)) {
+      fieldIndex.set(field, idx);
+      usedIndexes.add(idx);
+    }
+  }
+
+  headerRow.forEach((header, idx) => {
+    const field = columnMap.get(header);
+    if (field && !fieldIndex.has(field) && !usedIndexes.has(idx)) {
+      fieldIndex.set(field, idx);
+      usedIndexes.add(idx);
+    }
+  });
+
+  if (columnMap.size === 0 && fieldIndex.size === 0) {
     warnings.push(
       "Nie rozpoznano nagłówków kolumn GLS — dane mogą być niepoprawne. " +
       `Znalezione nagłówki: ${headerRow.join(", ")}`
     );
   }
-
-  // Build index: fieldKey → column index
-  const fieldIndex = new Map<keyof GlsRow, number>();
-  headerRow.forEach((header, idx) => {
-    const field = columnMap.get(header);
-    if (field && !fieldIndex.has(field)) {
-      fieldIndex.set(field, idx);
-    }
-  });
 
   const dataRows = raw.slice(headerRowIndex + 1);
 
@@ -320,7 +348,10 @@ export function parseGlsFile(
       cod_amount: parseNumber(get("codAmount")),
       declared_value: parseNumber(get("declaredValue")),
       shipping_cost: parseNumber(get("shippingCost")),
+      wz_number: normalizeWz(parseString(get("wzNumber"))),
       service_type: parseString(get("serviceType")),
+      carrier_name: parseString(get("carrierName")),
+      carrier_invoice_number: parseString(get("carrierInvoiceNumber")),
       status: parseString(get("status")),
       reference1: ref1,
       reference2: ref2,

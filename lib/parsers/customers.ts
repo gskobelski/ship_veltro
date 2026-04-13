@@ -16,7 +16,7 @@
  */
 
 import * as XLSX from "xlsx";
-import type { ParseResult, CustomerRecord } from "@/types";
+import type { ParseResult, CustomerRecord } from "../../types";
 
 const COL_ALIASES: Record<keyof CustomerRow, string[]> = {
   customerCode: [
@@ -86,6 +86,11 @@ function buildColumnMap(headers: string[]): Map<string, keyof CustomerRow> {
   return map;
 }
 
+function findHeaderIndex(headers: string[], targetHeader: string): number {
+  const normalizedTarget = normalizeHeader(targetHeader);
+  return headers.findIndex((header) => normalizeHeader(header) === normalizedTarget);
+}
+
 function parseNumber(val: unknown): number | null {
   if (val === null || val === undefined || val === "") return null;
   if (typeof val === "number") return val;
@@ -103,7 +108,8 @@ function parseString(val: unknown): string | null {
 export function parseCustomersFile(
   fileBuffer: Buffer,
   uploadId: string,
-  orgId: string
+  orgId: string,
+  mapping: Record<string, string> = {}
 ): ParseResult<Omit<CustomerRecord, "id">> {
   const errors: string[] = [];
   const warnings: string[] = [];
@@ -135,11 +141,22 @@ export function parseCustomersFile(
   }
 
   const headerRow = raw[headerRowIndex] as string[];
-  const columnMap = buildColumnMap(headerRow);
   const fieldIndex = new Map<keyof CustomerRow, number>();
+  const usedIndexes = new Set<number>();
+
+  for (const [field, headerName] of Object.entries(mapping) as [keyof CustomerRow, string][]) {
+    const idx = findHeaderIndex(headerRow, headerName);
+    if (idx >= 0 && !fieldIndex.has(field) && !usedIndexes.has(idx)) {
+      fieldIndex.set(field, idx);
+      usedIndexes.add(idx);
+    }
+  }
+
+  const columnMap = buildColumnMap(headerRow);
   headerRow.forEach((h, idx) => {
     const field = columnMap.get(h);
-    if (field && !fieldIndex.has(field)) fieldIndex.set(field, idx);
+    if (field && !fieldIndex.has(field) && !usedIndexes.has(idx)) fieldIndex.set(field, idx);
+    if (field && !usedIndexes.has(idx)) usedIndexes.add(idx);
   });
 
   const dataRows = raw.slice(headerRowIndex + 1);

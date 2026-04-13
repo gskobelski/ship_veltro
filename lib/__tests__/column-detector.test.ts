@@ -36,6 +36,19 @@ describe("detectColumns — gls", () => {
     expect(mapped.wz_number).toBe("Nr WZ");
     expect(mapped.shipping_cost).toBe("Koszt netto");
     expect(mapped.shipment_number).toBe("Nr przesyłki");
+    expect(mapped.carrier_name).toBe("Nazwa kuriera");
+    expect(mapped.carrier_invoice_number).toBe("Numer faktury kuriera");
+    expect(unmapped).toHaveLength(0);
+  });
+});
+
+describe("detectColumns — customers", () => {
+  it("detects standard customer headers", () => {
+    const headers = ["Kod klienta", "Nazwa klienta", "NIP"];
+    const { mapped, unmapped } = detectColumns("customers", headers, {});
+    expect(mapped.customer_code).toBe("Kod klienta");
+    expect(mapped.customer_name).toBe("Nazwa klienta");
+    expect(mapped.nip).toBe("NIP");
     expect(unmapped).toHaveLength(0);
   });
 });
