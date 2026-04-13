@@ -4,7 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { logoutAction } from "@/app/actions/auth";
 import { cn } from "@/lib/utils";
-import { BarChart3, Upload, LogOut, Ship } from "lucide-react";
+import { BarChart3, FileText, LogOut, Ship, Truck, Users } from "lucide-react";
 
 interface Props {
   orgSlug: string;
@@ -15,8 +15,10 @@ export function Sidebar({ orgSlug, orgName }: Props) {
   const pathname = usePathname();
 
   const navItems = [
-    { href: `/${orgSlug}/dashboard`, label: "Dashboard", icon: BarChart3 },
-    { href: `/${orgSlug}/upload`, label: "Prześlij dane", icon: Upload },
+    { href: `/${orgSlug}/sprzedaz`, label: "Sprzedaż", icon: FileText },
+    { href: `/${orgSlug}/przesylki`, label: "Przesyłki", icon: Truck },
+    { href: `/${orgSlug}/klienci`, label: "Klienci", icon: Users },
+    { href: `/${orgSlug}/zestawienia`, label: "Zestawienia", icon: BarChart3 },
   ];
 
   return (
