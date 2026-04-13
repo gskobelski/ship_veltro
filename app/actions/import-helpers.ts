@@ -30,7 +30,7 @@ const PARSER_MAPPING_KEYS: Record<FileType, Record<string, string>> = {
     nip: "nip",
   },
   gls: {
-    wz_number: "wzNumber",
+    wz_numbers: "wzNumbers",
     shipping_cost: "shippingCost",
     shipment_number: "shipmentNumber",
     customer_code: "customerCode",

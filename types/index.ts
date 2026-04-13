@@ -98,7 +98,7 @@ export interface ShipmentRecord {
   status: string | null;
   reference1: string | null;
   reference2: string | null;
-  wz_number: string | null;
+  wz_numbers: string[];
   carrier_name: string | null;
   carrier_invoice_number: string | null;
   raw_data: Record<string, unknown>;

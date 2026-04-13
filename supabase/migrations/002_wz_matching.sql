@@ -16,8 +16,11 @@ CREATE INDEX IF NOT EXISTS shipments_wz_idx ON shipments(org_id, wz_number);
 -- 3. Make customers.upload_id nullable (customers live at org level)
 ALTER TABLE customers ALTER COLUMN upload_id DROP NOT NULL;
 -- Unique per (org, customer_code) for UPSERT
-ALTER TABLE customers ADD CONSTRAINT IF NOT EXISTS customers_org_code_unique
-  UNIQUE (org_id, customer_code);
+DO $$ BEGIN
+  ALTER TABLE customers ADD CONSTRAINT customers_org_code_unique
+    UNIQUE (org_id, customer_code);
+EXCEPTION WHEN duplicate_object THEN NULL;
+END $$;
 
 -- 4. wz_matches — result of pairing invoices ↔ shipments
 CREATE TABLE IF NOT EXISTS wz_matches (

@@ -33,7 +33,7 @@ describe("detectColumns — gls", () => {
   it("detects standard GLS headers", () => {
     const headers = ["Nr WZ", "Koszt netto", "Nr przesyłki", "Nr klienta", "Data wysyłki", "Nazwa kuriera", "Numer faktury kuriera"];
     const { mapped, unmapped } = detectColumns("gls", headers, {});
-    expect(mapped.wz_number).toBe("Nr WZ");
+    expect(mapped.wz_numbers).toBe("Nr WZ");
     expect(mapped.shipping_cost).toBe("Koszt netto");
     expect(mapped.shipment_number).toBe("Nr przesyłki");
     expect(mapped.carrier_name).toBe("Nazwa kuriera");
