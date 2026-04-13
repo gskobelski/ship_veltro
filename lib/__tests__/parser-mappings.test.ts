@@ -87,4 +87,20 @@ describe("parser column mappings", () => {
     expect(result.records[0].customer_code).toBe("CUST-42");
     expect(result.records[0].customer_name).toBe("Klient Test");
   });
+
+  it("reserves mapped customer columns so alias detection cannot reuse them", () => {
+    const buffer = buildWorkbook([
+      ["Kod klienta", "Kod klienta", "Nazwa klienta", "NIP"],
+      ["MAPPED-NAME", "ALIAS-CODE", "Klient Test", "1234567890"],
+    ]);
+
+    const result = parseCustomersFile(buffer, "upload-1", "org-1", {
+      customerName: "Kod klienta",
+    });
+
+    expect(result.errors).toEqual([]);
+    expect(result.records).toHaveLength(1);
+    expect(result.records[0].customer_name).toBe("MAPPED-NAME");
+    expect(result.records[0].customer_code).toBe("ALIAS-CODE");
+  });
 });

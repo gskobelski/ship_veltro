@@ -155,8 +155,9 @@ export function parseCustomersFile(
   const columnMap = buildColumnMap(headerRow);
   headerRow.forEach((h, idx) => {
     const field = columnMap.get(h);
-    if (field && !fieldIndex.has(field) && !usedIndexes.has(idx)) fieldIndex.set(field, idx);
-    if (field && !usedIndexes.has(idx)) usedIndexes.add(idx);
+    if (!field || usedIndexes.has(idx)) return;
+    if (!fieldIndex.has(field)) fieldIndex.set(field, idx);
+    usedIndexes.add(idx);
   });
 
   const dataRows = raw.slice(headerRowIndex + 1);
