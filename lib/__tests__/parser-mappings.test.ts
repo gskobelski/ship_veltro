@@ -72,6 +72,48 @@ describe("parser column mappings", () => {
     expect(result.records[0].carrier_invoice_number).toBe("FV/KUR/2026/77");
   });
 
+  it("reads customer_code directly from GLS 'Kod klienta' column", () => {
+    const buffer = buildWorkbook([
+      [
+        "Nr przesyłki", "Data wysyłki", "Nazwa odbiorcy", "Miasto",
+        "Kod pocztowy", "Waga", "Ilość paczek", "Koszt netto",
+        "Nr WZ", "Kod klienta",
+      ],
+      [
+        "SHP/2/2026", "2026-04-01", "Odbiorca", "Gdańsk",
+        "80-001", "1.0", "1", "15.0",
+        "WZ/000200/2026", "KL9999",
+      ],
+    ]);
+
+    const result = parseGlsFile(buffer, "upload-1", "org-1");
+
+    expect(result.errors).toEqual([]);
+    expect(result.records).toHaveLength(1);
+    expect(result.records[0].customer_code).toBe("KL9999");
+  });
+
+  it("falls back to ref-based customer code extraction when column absent", () => {
+    const buffer = buildWorkbook([
+      [
+        "Nr przesyłki", "Data wysyłki", "Nazwa odbiorcy", "Miasto",
+        "Kod pocztowy", "Waga", "Ilość paczek", "Koszt netto",
+        "Nr WZ", "Referencja 1",
+      ],
+      [
+        "SHP/3/2026", "2026-04-01", "Odbiorca", "Kraków",
+        "30-001", "1.0", "1", "15.0",
+        "WZ/000300/2026", "KL1234",
+      ],
+    ]);
+
+    const result = parseGlsFile(buffer, "upload-1", "org-1");
+
+    expect(result.errors).toEqual([]);
+    expect(result.records).toHaveLength(1);
+    expect(result.records[0].customer_code).toBe("KL1234");
+  });
+
   it("lets customers mapping override alias-based detection", () => {
     const buffer = buildWorkbook([
       ["Kod klienta", "Mapped code", "Nazwa klienta", "NIP"],
