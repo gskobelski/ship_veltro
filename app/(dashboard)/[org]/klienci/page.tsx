@@ -1,6 +1,7 @@
 import { importCustomersAction } from "@/app/actions/import-customers";
 import { ImportButton } from "@/components/import/import-button";
 import { CustomersTable } from "@/components/customers/customers-table";
+import { TablePagination } from "@/components/ui/table-pagination";
 import { createServerClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
 
@@ -10,11 +11,14 @@ const FIELD_LABELS = {
   nip: "NIP",
 };
 
+const PAGE_SIZE = 50;
+
 interface Props {
   params: { org: string };
+  searchParams?: { page?: string };
 }
 
-export default async function KlienciPage({ params }: Props) {
+export default async function KlienciPage({ params, searchParams }: Props) {
   const supabase = await createServerClient();
   const { data: org } = await supabase
     .from("organizations")
@@ -24,12 +28,14 @@ export default async function KlienciPage({ params }: Props) {
 
   if (!org) redirect("/login");
 
-  const { data: customers } = await supabase
+  const page = Math.max(0, Number(searchParams?.page ?? 0));
+
+  const { data: customers, count } = await supabase
     .from("customers")
-    .select("id, customer_code, customer_name, nip")
+    .select("id, customer_code, customer_name, nip", { count: "exact" })
     .eq("org_id", org.id)
     .order("customer_name", { ascending: true })
-    .limit(200);
+    .range(page * PAGE_SIZE, page * PAGE_SIZE + PAGE_SIZE - 1);
 
   return (
     <div className="p-8">
@@ -48,8 +54,17 @@ export default async function KlienciPage({ params }: Props) {
         fileType="customers"
         fieldLabels={FIELD_LABELS}
       />
-      <div className="mt-8">
-        <CustomersTable customers={(customers ?? []) as Array<{ id: string; customer_code: string; customer_name: string; nip: string | null }>} />
+      <div className="mt-8 space-y-4">
+        <CustomersTable
+          orgId={org.id}
+          customers={(customers ?? []) as Array<{ id: string; customer_code: string; customer_name: string; nip: string | null }>}
+        />
+        <TablePagination
+          page={page}
+          total={count ?? 0}
+          pageSize={PAGE_SIZE}
+          basePath={`/${params.org}/klienci`}
+        />
       </div>
     </div>
   );
