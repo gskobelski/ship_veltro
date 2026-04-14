@@ -165,6 +165,8 @@ export interface ReportByClient {
 export interface ReportByShipment {
   shipment_number: string | null;
   nr_faktur: string; // comma-separated
+  nr_wz: string; // comma-separated
+  customer_code: string | null;
   customer_name: string | null;
   wartosc_fv: number;
   koszt_paczki: number;
