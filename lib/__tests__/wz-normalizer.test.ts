@@ -31,6 +31,26 @@ describe("extractWzNumbers", () => {
     expect(result).toEqual(["WZ000482", "WZ000483"]);
   });
 
+  it("extracts chained WZ numbers separated by slashes", () => {
+    const result = extractWzNumbers("WZ/853/854/855/856");
+    expect(result).toEqual(["WZ000853", "WZ000854", "WZ000855", "WZ000856"]);
+  });
+
+  it("extracts WZ numbers separated by spaces and commas", () => {
+    const result = extractWzNumbers("WZ 015291, WZ 015231");
+    expect(result).toEqual(["WZ015291", "WZ015231"]);
+  });
+
+  it("extracts WZ numbers when the prefix is attached to the number", () => {
+    const result = extractWzNumbers("WZ12 AJ DP");
+    expect(result).toEqual(["WZ000012"]);
+  });
+
+  it("stops extraction before descriptive suffixes", () => {
+    const result = extractWzNumbers("WZ/37/42/48 AJ SZ");
+    expect(result).toEqual(["WZ000037", "WZ000042", "WZ000048"]);
+  });
+
   it("deduplicates WZ numbers", () => {
     const result = extractWzNumbers("WZ/000482/2025; WZ/000482/2025");
     expect(result).toEqual(["WZ000482"]);
