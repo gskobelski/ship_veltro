@@ -49,10 +49,12 @@ export default async function ZestawieniaPage({ params, searchParams }: Props) {
         }
       : currentTab === "shipment"
       ? {
-          headers: ["Nr przesyłki", "Nr faktur", "Klient", "Wartość FV", "Koszt paczki", "Nr faktury kuriera"],
+          headers: ["Nr przesyłki", "Nr WZ", "Nr faktur", "ID klienta", "Klient", "Wartość FV", "Koszt paczki", "Nr faktury kuriera"],
           rows: byShipment.map((row) => [
             row.shipment_number ?? "—",
+            row.nr_wz || "—",
             row.nr_faktur || "—",
+            row.customer_code ?? "—",
             row.customer_name ?? "—",
             row.wartosc_fv.toFixed(2),
             row.koszt_paczki.toFixed(2),

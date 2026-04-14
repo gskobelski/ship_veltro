@@ -100,6 +100,8 @@ export async function getReportByShipment(orgId: string): Promise<ReportByShipme
     const current = grouped.get(key) ?? {
       shipment_number: shipmentNumber,
       nr_faktur: "",
+      nr_wz: "",
+      customer_code: row.customer_code,
       customer_name: row.customer_name,
       wartosc_fv: 0,
       koszt_paczki: 0,
@@ -110,6 +112,9 @@ export async function getReportByShipment(orgId: string): Promise<ReportByShipme
     current.koszt_paczki += row.shipping_cost;
     if (row.invoice_number) {
       current.nr_faktur = [current.nr_faktur, row.invoice_number].filter(Boolean).join(current.nr_faktur ? ", " : "");
+    }
+    if (row.wz_number) {
+      current.nr_wz = [current.nr_wz, row.wz_number].filter(Boolean).join(current.nr_wz ? ", " : "");
     }
 
     grouped.set(key, current);
