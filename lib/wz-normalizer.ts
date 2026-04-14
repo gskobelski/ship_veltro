@@ -1,6 +1,7 @@
 // lib/wz-normalizer.ts
 
-const WZ_REGEX = /\b(WZ|ZZ)\s*\/\s*(\d{1,6})\b/gi;
+const WZ_REGEX = /\b(WZ|ZZ)\s*\/?\s*(\d{1,6})(?:\s*\/\s*\d{1,6})*/gi;
+const YEAR_SEGMENT_REGEX = /^(19|20)\d{2}$/;
 
 /**
  * Normalizes a single WZ/ZZ string to canonical form: WZ000123 / ZZ000201
@@ -33,11 +34,18 @@ export function extractWzNumbers(raw: string | null | undefined): string[] {
   const text = raw.toString().toUpperCase();
   let match: RegExpExecArray | null;
 
-  const re = /\b(WZ|ZZ)\s*\/\s*(\d{1,6})\b/g;
-  while ((match = re.exec(text)) !== null) {
+  while ((match = WZ_REGEX.exec(text)) !== null) {
     const prefix = match[1];
-    const num = match[2].padStart(6, "0");
-    results.add(`${prefix}${num}`);
+    const numbers = Array.from(match[0].matchAll(/\d{1,6}/g), (numberMatch) => numberMatch[0]);
+
+    const normalizedNumbers =
+      numbers.length > 1 && YEAR_SEGMENT_REGEX.test(numbers[numbers.length - 1] ?? "")
+        ? numbers.slice(0, -1)
+        : numbers;
+
+    for (const number of normalizedNumbers) {
+      results.add(`${prefix}${number.padStart(6, "0")}`);
+    }
   }
 
   return Array.from(results);
